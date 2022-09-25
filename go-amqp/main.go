@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/amtc131/ampq-spring-batch/go-amqp/data"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -25,7 +26,7 @@ func main() {
 
 	q, err := ch.QueueDeclare(
 		"myqueue", //name
-		false,     //durable
+		true,      //durable
 		false,     // delete when unused
 		false,     // exclusive
 		false,     // no-wait
@@ -47,10 +48,11 @@ func main() {
 	failOnError(err, "Failed to register a consumer")
 
 	var forever chan struct{}
-
+	var consumers data.Consumer
 	go func() {
 		for d := range msgs {
-			log.Printf("Recived a message: %s", d.Body)
+			data.Unmarshal(d.Body, &consumers)
+			log.Printf("Recived a message: %#v", consumers)
 		}
 	}()
 
